@@ -1,15 +1,13 @@
-Affidavit:
-I attest that I am the sole author of this submitted work and any code borrowed from other sources has been identified by comments placed in my submitted code.
-Ngoyi Kabaso 101320375
+2406 Collision Math Demo
 
-Install Instructions: 
-npm install
+(c) Louis D. Nel 2022
 
-Launch Instructions: 
+Install: (Assumes node.js and npm are installed.)
+No extra NPM modules are needed.
+
+Launch:
 node server.js
 
-Testing Instructions:
-http://localhost:3000/chatClient.html
-
-Demonstration Video:
--None
+Testing:
+Use Chrome browser to visit:
+http://localhost:3000/curling.html
