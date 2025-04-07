@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('keyup', handleKeyUp)
 
   //add button handlers
-  //add listener to submit button
-  document.getElementById('submit_button').addEventListener('click', handleSubmitButton)
   document.getElementById('JoinAsHomeButton').addEventListener('click', handleJoinAsHomeButton)
   document.getElementById('JoinAsVisitorButton').addEventListener('click', handleJoinAsVisitorButton)
   document.getElementById('JoinAsSpectatorButton').addEventListener('click', handleJoinAsSpectatorButton)

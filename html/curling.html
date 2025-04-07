@@ -45,15 +45,13 @@
       Canvas not supported
     </canvas>
     <br>
-    <input type = "text"  id="userTextField" name = "userTextField"  value="" size = "60" />
-    <input type="button" id="submit_button" value="Submit Request" >
     <input type="button" id="JoinAsHomeButton" value="Join as HOME" disabled>
     <input type="button" id="JoinAsVisitorButton" value="Join as VISITOR" disabled>
     <input type="button" id="JoinAsSpectatorButton" value="Join as Spectator" disabled>
 
-	<div id="text-area">
 	</div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script src='queue.js'></script>
   <script src='constants_and_state_vars.js'></script>
   <script src='ice.js'></script>
@@ -63,9 +61,8 @@
   <script src='set_of_collisions.js'></script>
   <script src='cue.js'></script>
   <script src='canvasWithTimer.js'></script>
-  <script src='mouse_handlers.js'></script>
+  <script src='input_handlers.js'></script>
   <script src='timer_handlers.js'></script>
-  <script src='keyboard_handlers.js'></script>
   <script src='button_handlers.js'></script>
   <script src='event_listeners.js'></script>
   </body>

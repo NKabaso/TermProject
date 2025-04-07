@@ -49,6 +49,7 @@ let movingString = {
 let timer //timer for animating motion
 let canvas = document.getElementById('canvas1') //our drawing canvas
 let iceSurface = new Ice(canvas)
+const socket = io()
 
 allStones = new SetOfStones() //set of all stones. sorted by lying score
 homeStones = new SetOfStones() //set of home stones in no particular order
@@ -57,8 +58,29 @@ shootingQueue = new Queue() //queue of stones still to be shot
 let shootingArea = iceSurface.getShootingArea()
 let stoneRadius = iceSurface.nominalStoneRadius()
 
+//Disables the respective buttons for other clients
+socket.on('server added', function (user) {
+  let btn
+  if (user === 'home') {
+    btn = document.getElementById("JoinAsHomeButton")
+    btn.disabled = true //disable button
+    btn.style.backgroundColor = "lightgray"
+    isHomePlayerAssigned = true
+  }
+  else if (user === 'visitor') {
+    btn = document.getElementById("JoinAsVisitorButton")
+    btn.disabled = true //disable button
+    btn.style.backgroundColor = "lightgray"
+    isVisitorPlayerAssigned = true
+  }
+})
+
+socket.on('serverSays', function(text){
+  stageStones()
+})
+
 //create stones
-for(let i=0; i<STONES_PER_TEAM; i++){
+for (let i = 0; i < STONES_PER_TEAM; i++) {
   let homeStone = new Stone(0, 0, stoneRadius, HOME_COLOUR)
   let visitorStone = new Stone(0, 0, stoneRadius, VISITOR_COLOUR)
   homeStones.add(homeStone)
@@ -68,31 +90,31 @@ for(let i=0; i<STONES_PER_TEAM; i++){
 }
 
 
-function stageStones(){
+function stageStones() {
   //stage the stones in the shooting area by lining them vertically on either side
   //add stones to the shooting order queue based on the value
   //of whosTurnIsIt state variable
 
-  if(whosTurnIsIt === HOME_COLOUR){
-    for(let i=0; i<STONES_PER_TEAM; i++){
+  if (whosTurnIsIt === HOME_COLOUR) {
+    for (let i = 0; i < STONES_PER_TEAM; i++) {
       shootingQueue.enqueue(homeStones.elementAt(i))
       shootingQueue.enqueue(visitorStones.elementAt(i))
-      homeStones.elementAt(i).setLocation({x:shootingArea.x + stoneRadius, y:shootingArea.height - (stoneRadius + (STONES_PER_TEAM-i-1)*stoneRadius*2)})
-      visitorStones.elementAt(i).setLocation({x:shootingArea.x + shootingArea.width - stoneRadius, y:shootingArea.height - (stoneRadius + (STONES_PER_TEAM-i-1)*stoneRadius*2)})
+      homeStones.elementAt(i).setLocation({ x: shootingArea.x + stoneRadius, y: shootingArea.height - (stoneRadius + (STONES_PER_TEAM - i - 1) * stoneRadius * 2) })
+      visitorStones.elementAt(i).setLocation({ x: shootingArea.x + shootingArea.width - stoneRadius, y: shootingArea.height - (stoneRadius + (STONES_PER_TEAM - i - 1) * stoneRadius * 2) })
 
     }
   }
   else {
-    for(let i=0; i<STONES_PER_TEAM; i++){
+    for (let i = 0; i < STONES_PER_TEAM; i++) {
       shootingQueue.enqueue(visitorStones.elementAt(i))
       shootingQueue.enqueue(homeStones.elementAt(i))
-      homeStones.elementAt(i).setLocation({x:shootingArea.x + stoneRadius, y:shootingArea.height - (stoneRadius + (STONES_PER_TEAM-i-1)*stoneRadius*2)})
-      visitorStones.elementAt(i).setLocation({x:shootingArea.x + shootingArea.width - stoneRadius, y:shootingArea.height - (stoneRadius + (STONES_PER_TEAM-i-1)*stoneRadius*2)})
+      homeStones.elementAt(i).setLocation({ x: shootingArea.x + stoneRadius, y: shootingArea.height - (stoneRadius + (STONES_PER_TEAM - i - 1) * stoneRadius * 2) })
+      visitorStones.elementAt(i).setLocation({ x: shootingArea.x + shootingArea.width - stoneRadius, y: shootingArea.height - (stoneRadius + (STONES_PER_TEAM - i - 1) * stoneRadius * 2) })
     }
 
   }
 }
-
+//socket.emit('clientSays')
 stageStones()
 
 //console.log(`stones: ${allStones.toString()}`)

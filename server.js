@@ -16,9 +16,11 @@ Use browser to view pages at http://localhost:3000/collisions.html
 */
 
 //Server Code
-const http = require("http") //need to http
+const server = require('http').createServer(handler)
+const io = require('socket.io')(server) // wrap server app in socket io capability
 const fs = require("fs") //needed if you want to read and write files
 const url = require("url") //to parse url strings
+const PORT = process.argv[2] || process.env.PORT || 300
 
 const ROOT_DIR = "html" //dir to serve static files from
 
@@ -48,6 +50,8 @@ function get_mime(filename) {
   return MIME_TYPES["txt"]
 }
 
+server.listen(PORT)
+/*
 http.createServer(function(request, response) {
     let urlObj = url.parse(request.url, true, false)
     console.log("\n============================")
@@ -106,7 +110,81 @@ http.createServer(function(request, response) {
       }
     })
   }).listen(3000)
+*/
+function handler(request, response) {
+  //handler for http server requests including static files
+  let urlObj = url.parse(request.url, true, false)
+  console.log('\n============================')
+  console.log("PATHNAME: " + urlObj.pathname)
+  console.log("REQUEST: " + ROOT_DIR + urlObj.pathname)
+  console.log("METHOD: " + request.method)
 
-console.log("Server Running at PORT 3000  CNTL-C to quit")
+  let filePath = ROOT_DIR + urlObj.pathname
+  if (urlObj.pathname === '/') filePath = ROOT_DIR + '/index.html'
+
+  fs.readFile(filePath, function (err, data) {
+    if (err) {
+      //report error to console
+      console.log('ERROR: ' + JSON.stringify(err))
+      //respond with not found 404 to client
+      response.writeHead(404);
+      response.end(JSON.stringify(err))
+      return
+    }
+    response.writeHead(200, {
+      'Content-Type': get_mime(filePath)
+    })
+    response.end(data)
+  })
+
+}
+//Socket Server
+//Store userId and their socket IDs
+const connectedUsers = new Map();
+io.on('connection', function (socket) {
+  console.log('A person has joined')
+  //Checks if a home/ visitor client exists
+  if(connectedUsers.has('home'))
+    io.emit('server added', 'home')
+  if(connectedUsers.has('visitor'))
+    io.emit('server added', 'visitor')
+    
+  //Adds a user
+  socket.on("join user", (userId) => {
+    connectedUsers.set(userId, socket.id)
+    io.emit('server added', userId)
+    console.log(`User ${userId} joined witha socket ID ${socket.id}`);
+  })
+
+  socket.on('disconnect', function (data) {
+    //event emitted when a client disconnects
+    console.log('client disconnected')
+    for (const [userId, socketId] of connectedUsers.entries()) {
+      if (socketId === socket.id) {
+        connectedUsers.delete(userId);
+        break;
+      }
+    }
+  })
+
+  socket.on('clientSays', function(){
+    //console.log('RECIEVED: '+data)
+    for(const key of connectedUsers.keys()){
+      let clientSocketId = connectedUsers.get(key)
+      io.to(clientSocketId).emit('serverSays')
+    }
+  })
+
+  /*Handles who goes next
+  socket.on('just shot',function(){
+    for(const key of connectedUsers.keys()){
+      let clientSocketId = connectedUsers.get(key)
+      io.to(clientSocketId).emit('serverShot')
+    }
+  })
+    */
+})
+
+console.log(`Server Running at port ${PORT}  CNTL-C to quit`)
 console.log("To Test")
-console.log("http://localhost:3000/curling.html")
+console.log(`http://localhost:${PORT}/curling.html`)
