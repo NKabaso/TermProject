@@ -114,10 +114,10 @@ http.createServer(function(request, response) {
 function handler(request, response) {
   //handler for http server requests including static files
   let urlObj = url.parse(request.url, true, false)
-  console.log('\n============================')
-  console.log("PATHNAME: " + urlObj.pathname)
-  console.log("REQUEST: " + ROOT_DIR + urlObj.pathname)
-  console.log("METHOD: " + request.method)
+  //console.log('\n============================')
+  //console.log("PATHNAME: " + urlObj.pathname)
+  //console.log("REQUEST: " + ROOT_DIR + urlObj.pathname)
+  //console.log("METHOD: " + request.method)
 
   let filePath = ROOT_DIR + urlObj.pathname
   if (urlObj.pathname === '/') filePath = ROOT_DIR + '/index.html'
@@ -174,15 +174,39 @@ io.on('connection', function (socket) {
       io.to(clientSocketId).emit('serverSays')
     }
   })
-
-  /*Handles who goes next
-  socket.on('just shot',function(){
+  //Broadcast the mouse click to other clients
+  socket.on('mouseDown',function(stone, cue){
+    /*
     for(const key of connectedUsers.keys()){
       let clientSocketId = connectedUsers.get(key)
-      io.to(clientSocketId).emit('serverShot')
+      io.to(clientSocketId).emit('serverMouseDown', stone, cue)
     }
+      */
+    socket.broadcast.emit('serverMouseDown', stone, cue)
   })
-    */
+
+  //Broadcasts the player's movement
+  socket.on('mouseMove',function(x, y){
+    /*
+    for(const key of connectedUsers.keys()){
+      let clientSocketId = connectedUsers.get(key)
+      io.to(clientSocketId).emit('serverMouseMove', cue)
+    }
+      */
+    socket.broadcast.emit('serverMouseMove', x,y)
+  })
+  socket.on('mouseUp',function(){
+    /*
+    for(const key of connectedUsers.keys()){
+      let clientSocketId = connectedUsers.get(key)
+      io.to(clientSocketId).emit('serverMouseUp')
+    }
+      */
+    socket.broadcast.emit('serverMouseUp')
+  })
+
+  
+    
 })
 
 console.log(`Server Running at port ${PORT}  CNTL-C to quit`)

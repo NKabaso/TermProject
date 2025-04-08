@@ -34,18 +34,6 @@ Instead the .html file simply includes a <script></script> statement for each
 required file. No attempt is made to bundle the files.
 */
 
-//leave this moving word for fun and for using it to
-//provide status info to client.
-let movingString = {
-  word: "Moving",
-  x: 100,
-  y: 100,
-  xDirection: 1, //+1 for rightwards, -1 for leftwards
-  yDirection: 1, //+1 for downwards, -1 for upwards
-  stringWidth: 50, //will be updated when drawn
-  stringHeight: 24
-} //assumed height based on drawing point size
-
 let timer //timer for animating motion
 let canvas = document.getElementById('canvas1') //our drawing canvas
 let iceSurface = new Ice(canvas)
@@ -75,8 +63,46 @@ socket.on('server added', function (user) {
   }
 })
 
-socket.on('serverSays', function(text){
-  stageStones()
+socket.on('serverMouseDown', function (canvasX, canvasY) {
+  let canvasMouseLoc ={ x: canvasX, y: canvasY}
+  stoneBeingShot = allStones.stoneAtLocation(canvasX, canvasY)
+    if (stoneBeingShot === null) {
+        if (iceSurface.isInShootingCrosshairArea(canvasMouseLoc)) {
+            if (shootingQueue.isEmpty()){
+                stageStones()
+            } 
+            //console.log(`shooting from crosshair`)
+            stoneBeingShot = shootingQueue.front()
+            stoneBeingShot.setLocation(canvasMouseLoc)
+            //we clicked near the shooting crosshair
+        }
+    }
+
+    if (stoneBeingShot != null) {
+        shootingCue = new Cue(canvasX, canvasY)
+        console.log("Move:"+JSON.stringify(stoneBeingShot, null, 2));
+        document.getElementById('canvas1').addEventListener('mousemove', handleMouseMove)
+        document.getElementById('canvas1').addEventListener('mouseup', handleMouseUp)
+    }
+
+})
+
+socket.on('serverMouseMove', function (canvasX, canvasY) {
+  //console.log("Move:"+JSON.stringify(shootingCue, null, 2)); // 2-space indentation
+  shootingCue.setCueEnd(canvasX, canvasY)
+})
+
+socket.on('serverMouseUp', function () {
+  if (shootingCue != null) {
+    let cueVelocity = shootingCue.getVelocity()
+    if (stoneBeingShot != null) {
+      stoneBeingShot.addVelocity(cueVelocity)
+    }
+    shootingCue = null
+    shootingQueue.dequeue()
+    //console.log("Queue:"+JSON.stringify(shootingQueue, null, 2));
+    enableShooting = false //disable shooting until shot stone stops
+  }
 })
 
 //create stones
@@ -88,7 +114,6 @@ for (let i = 0; i < STONES_PER_TEAM; i++) {
   allStones.add(homeStone)
   allStones.add(visitorStone)
 }
-
 
 function stageStones() {
   //stage the stones in the shooting area by lining them vertically on either side
@@ -114,7 +139,6 @@ function stageStones() {
 
   }
 }
-//socket.emit('clientSays')
 stageStones()
 
 //console.log(`stones: ${allStones.toString()}`)
@@ -141,7 +165,6 @@ function drawCanvas() {
   context.fillStyle = 'white'
   context.fillRect(0, 0, canvas.width, canvas.height) //erase canvas
 
-
   //draw playing surface
   iceSurface.draw(context, whosTurnIsIt)
 
@@ -149,14 +172,12 @@ function drawCanvas() {
   context.strokeStyle = 'blue'
   context.fillStyle = 'red'
 
-  //used for debugging. No used in the simulation
-  movingString.stringWidth = context.measureText(movingString.word).width
-  context.fillText(movingString.word, movingString.x, movingString.y)
-
   //draw the stones
   allStones.draw(context, iceSurface)
-  if (shootingCue != null) shootingCue.draw(context)
+  if (shootingCue != null)
+    shootingCue.draw(context)
 
   //draw the score (as topmost feature).
   iceSurface.drawScore(context, score)
+  socket.emit('draw',context)
 }

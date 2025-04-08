@@ -60,17 +60,20 @@ function getCanvasMouseLocation(e) {
 function handleMouseDown(e) {
     if (enableShooting === false) return //cannot shoot when stones are in motion
     if (!isClientFor(whosTurnIsIt)) return //only allow controlling client
-
+    //socket.emit('mouseDown', e)
+    
     let canvasMouseLoc = getCanvasMouseLocation(e)
     let canvasX = canvasMouseLoc.x
     let canvasY = canvasMouseLoc.y
     //console.log("mouse down:" + canvasX + ", " + canvasY)
-
+    socket.emit('mouseDown', canvasX, canvasY, canvasMouseLoc)
     stoneBeingShot = allStones.stoneAtLocation(canvasX, canvasY)
-
     if (stoneBeingShot === null) {
         if (iceSurface.isInShootingCrosshairArea(canvasMouseLoc)) {
-            if (shootingQueue.isEmpty()) stageStones()
+            if (shootingQueue.isEmpty()){
+                console.log("FInsihed")
+                stageStones()
+            } 
             //console.log(`shooting from crosshair`)
             stoneBeingShot = shootingQueue.front()
             stoneBeingShot.setLocation(canvasMouseLoc)
@@ -80,9 +83,10 @@ function handleMouseDown(e) {
 
     if (stoneBeingShot != null) {
         shootingCue = new Cue(canvasX, canvasY)
+        console.log("Move:"+JSON.stringify(stoneBeingShot, null, 2));
+        //socket.emit('mouseDown', stoneBeingShot, shootingCue)
         document.getElementById('canvas1').addEventListener('mousemove', handleMouseMove)
         document.getElementById('canvas1').addEventListener('mouseup', handleMouseUp)
-
     }
 
     // Stop propagation of the event and stop any default
@@ -91,38 +95,51 @@ function handleMouseDown(e) {
     e.preventDefault()
 
     drawCanvas()
+    
 }
 
 function handleMouseMove(e) {
+    
     let canvasMouseLoc = getCanvasMouseLocation(e)
     let canvasX = canvasMouseLoc.x
     let canvasY = canvasMouseLoc.y
 
-    //console.log("mouse move: " + canvasX + "," + canvasY)
+   // console.log("mouse move: " + canvasX + "," + canvasY)
 
     if (shootingCue != null) {
+        //console.log("Move:"+JSON.stringify(shootingCue, null, 2));
         shootingCue.setCueEnd(canvasX, canvasY)
+        socket.emit('mouseMove', canvasX, canvasY)
     }
 
     e.stopPropagation()
 
-    drawCanvas()
+    drawCanvas()  
 }
 
 function handleMouseUp(e) {
-    //console.log("mouse up")
+    //console.log("Up:"+ JSON.stringify(shootingCue, null, 2));
+    //console.log("Queue:"+JSON.stringify(shootingQueue, null, 2)); 
+
     e.stopPropagation()
+    socket.emit('mouseUp')
+    
     if (shootingCue != null) {
         let cueVelocity = shootingCue.getVelocity()
-        if (stoneBeingShot != null) stoneBeingShot.addVelocity(cueVelocity)
+        if (stoneBeingShot != null) {
+            stoneBeingShot.addVelocity(cueVelocity)
+        }
         shootingCue = null
         shootingQueue.dequeue()
+       // console.log("Queue:"+JSON.stringify(shootingQueue, null, 2));
         enableShooting = false //disable shooting until shot stone stops
     }
+        
 
     //remove mouse move and mouse up handlers but leave mouse down handler
     document.getElementById('canvas1').removeEventListener('mousemove', handleMouseMove)
     document.getElementById('canvas1').removeEventListener('mouseup', handleMouseUp)
 
     drawCanvas() //redraw the canvas
+    
 }
