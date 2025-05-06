@@ -1,11 +1,4 @@
 /*
-COMP 2406 Collision Demo
-(c) Louis D. Nel 2018
-
-This example is based on the collision geometry math presented in
-assignment #3 (fall 2018).
-Some of the variable names (e.g. angle_d) correspond to those
-presented in the powerpoint slides with the assignment.
 
 This code is intended to serve as the base code for building
 an online multi-player game where clients are kept in synch
@@ -168,7 +161,6 @@ io.on('connection', function (socket) {
   })
 
   socket.on('clientSays', function(){
-    //console.log('RECIEVED: '+data)
     for(const key of connectedUsers.keys()){
       let clientSocketId = connectedUsers.get(key)
       io.to(clientSocketId).emit('serverSays')
@@ -176,33 +168,33 @@ io.on('connection', function (socket) {
   })
   //Broadcast the mouse click to other clients
   socket.on('mouseDown',function(stone, cue){
-    /*
+    
     for(const key of connectedUsers.keys()){
       let clientSocketId = connectedUsers.get(key)
       io.to(clientSocketId).emit('serverMouseDown', stone, cue)
     }
-      */
-    socket.broadcast.emit('serverMouseDown', stone, cue)
+      
+    //socket.broadcast.emit('serverMouseDown', stone, cue)
   })
 
   //Broadcasts the player's movement
   socket.on('mouseMove',function(x, y){
-    /*
+    
     for(const key of connectedUsers.keys()){
       let clientSocketId = connectedUsers.get(key)
-      io.to(clientSocketId).emit('serverMouseMove', cue)
+      io.to(clientSocketId).emit('serverMouseMove', x , y)
     }
-      */
-    socket.broadcast.emit('serverMouseMove', x,y)
+      
+    //socket.broadcast.emit('serverMouseMove', x,y)
   })
   socket.on('mouseUp',function(){
-    /*
+    
     for(const key of connectedUsers.keys()){
       let clientSocketId = connectedUsers.get(key)
       io.to(clientSocketId).emit('serverMouseUp')
     }
-      */
-    socket.broadcast.emit('serverMouseUp')
+      
+    //socket.broadcast.emit('serverMouseUp')
   })
 
   
